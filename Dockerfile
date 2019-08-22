@@ -1,11 +1,12 @@
 FROM alpine:latest
 
+RUN apk add pdns-backend-sqlite3
+RUN mkdir -p  /etc/pdns/conf.d
 
-RUN apk --update add libpq sqlite-libs libstdc++ libgcc && \
-    apk add --virtual build-deps g++ make sqlite-dev curl boost-dev 
-RUN curl -sSL https://github.com/PowerDNS/pdns/archive/auth-4.1.13.tar.gz | tar xz -C /tmp && \
-    cd /tmp/pdns-auth-4.1.13 && \
-    ./configure --prefix="" --exec-prefix=/usr --sysconfdir=/etc/pdns --with-modules="gsqlite3" --without-lua &&
+ADD https://raw.githubusercontent.com/PowerDNS/pdns/7a0bef6560e7b589d74b22ff9667fa621c787e6d/modules/gsqlite3backend/schema.sqlite3.sql /etc/pdns
+RUN sqlite3 /etc/pdns/powerdns.sqlite < /etc/pdns/schema.sqlite3.sql 
+ADD pdns.conf /etc/pdns/
+ADD entrypoint.sh /
 
 EXPOSE 53/tcp 53/udp
 
